@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Block Blast TON - Зарабатывай TON</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Block Blast TON Miner - Зарабатывай TON</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,52 +14,34 @@
         
         body {
             margin: 0;
-            padding: 0;
+            padding: 10px;
             background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-            height: 100%;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
         }
         
         .game-container {
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 10px;
-            padding-bottom: 30px;
-            -webkit-overflow-scrolling: touch;
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(15, 15, 26, 0.95);
+            border-radius: 30px;
+            padding: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
         
-        /* Стилизация скролла */
-        .game-container::-webkit-scrollbar {
-            width: 4px;
-        }
-        
-        .game-container::-webkit-scrollbar-track {
-            background: #1a1a2e;
-        }
-        
-        .game-container::-webkit-scrollbar-thumb {
-            background: #ffd700;
-            border-radius: 10px;
-        }
-        
-        /* Верхняя панель */
+        /* Панель статистики */
         .stats-panel {
             background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 12px;
             margin-bottom: 15px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
         
         .stat-card {
@@ -76,7 +58,7 @@
         }
         
         .stat-value {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             color: #ffd700;
         }
@@ -86,25 +68,20 @@
             display: flex;
             justify-content: center;
             margin-bottom: 15px;
-            background: rgba(10, 10, 18, 0.5);
-            border-radius: 20px;
-            padding: 10px;
         }
         
-        #boardCanvas {
+        canvas {
             background: #0a0a12;
             border-radius: 15px;
             box-shadow: 0 0 0 2px #2a2a3e;
             width: 100%;
             height: auto;
-            cursor: grab;
-            max-width: 400px;
+            cursor: pointer;
         }
         
-        /* Блоки для перетаскивания */
+        /* Блоки */
         .blocks-panel {
             background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 15px;
             margin-bottom: 15px;
@@ -125,43 +102,30 @@
             flex-wrap: wrap;
         }
         
-        .draggable-block {
+        .block-option {
             background: rgba(15, 15, 26, 0.8);
             border-radius: 15px;
             padding: 10px;
-            cursor: grab;
+            cursor: pointer;
             transition: all 0.2s;
             border: 2px solid transparent;
-            touch-action: none;
         }
         
-        .draggable-block:active {
-            cursor: grabbing;
-        }
-        
-        .draggable-block.selected {
+        .block-option.selected {
             border-color: #ffd700;
             background: #1a1a2e;
             transform: scale(1.05);
         }
         
-        .block-canvas {
+        .block-option:active {
+            transform: scale(0.95);
+        }
+        
+        .mini-canvas {
             background: #0a0a12;
             border-radius: 10px;
             display: block;
             margin: 0 auto;
-            pointer-events: none;
-        }
-        
-        /* Drag эффект */
-        .drag-clone {
-            position: fixed;
-            z-index: 9999;
-            opacity: 0.9;
-            pointer-events: none;
-            filter: drop-shadow(0 0 15px rgba(255,215,0,0.7));
-            transform: scale(1.1);
-            transition: none;
         }
         
         /* Кнопки */
@@ -175,14 +139,13 @@
         button {
             background: linear-gradient(135deg, #2a2a3e 0%, #1a1a2e 100%);
             border: none;
-            padding: 14px;
+            padding: 12px;
             border-radius: 15px;
             color: white;
             font-weight: bold;
             font-size: 14px;
             cursor: pointer;
             transition: all 0.1s;
-            font-family: monospace;
         }
         
         button:active {
@@ -192,28 +155,14 @@
         .stop-btn {
             background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
             width: 100%;
-            padding: 18px;
-            font-size: 20px;
+            padding: 15px;
+            font-size: 18px;
             animation: pulse 1s infinite;
-            margin-bottom: 10px;
         }
         
         .buy-btn {
             background: linear-gradient(135deg, #fee140 0%, #fa709a 100%);
             color: #000;
-        }
-        
-        .withdraw-btn {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            color: #000;
-        }
-        
-        .leaderboard-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .reset-btn {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
         }
         
         @keyframes pulse {
@@ -222,68 +171,10 @@
             100% { transform: scale(1); }
         }
         
-        /* Модальные окна */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-radius: 30px;
-            padding: 20px;
-            max-width: 90%;
-            max-height: 80%;
-            overflow-y: auto;
-            border: 2px solid #ffd700;
-        }
-        
-        .modal-header {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ffd700;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid #2a2a3e;
-            color: white;
-        }
-        
-        .close-modal {
-            background: #f5576c;
-            margin-top: 15px;
-            width: 100%;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 10px;
-            border: none;
-            background: #0f0f1a;
-            color: white;
-            font-size: 16px;
-        }
-        
-        @media (max-width: 500px) {
-            .stat-value { font-size: 16px; }
-            button { padding: 12px; font-size: 13px; }
-            .stop-btn { font-size: 18px; padding: 15px; }
-            .block-canvas { width: 65px; height: 65px; }
+        @media (max-width: 450px) {
+            .stat-value { font-size: 14px; }
+            button { padding: 10px; font-size: 12px; }
+            .mini-canvas { width: 60px; height: 60px; }
         }
     </style>
 </head>
@@ -291,49 +182,26 @@
 <div class="game-container">
     <div class="stats-panel">
         <div class="stat-card"><div class="stat-label">🏆 СЧЁТ</div><div class="stat-value" id="score">0</div></div>
-        <div class="stat-card"><div class="stat-label">⏱️ ВРЕМЯ</div><div class="stat-value" id="timer">0</div></div>
+        <div class="stat-card"><div class="stat-label">⏱️ ВРЕМЯ</div><div class="stat-value" id="timer">60</div></div>
         <div class="stat-card"><div class="stat-label">💰 TON</div><div class="stat-value" id="tonAmount">0</div></div>
         <div class="stat-card"><div class="stat-label">⭐ ЗВЁЗДЫ</div><div class="stat-value" id="stars">0</div></div>
     </div>
     
     <div class="board-container">
-        <canvas id="boardCanvas" width="360" height="360"></canvas>
+        <canvas id="boardCanvas" width="320" height="320"></canvas>
     </div>
     
     <div class="blocks-panel">
-        <div class="blocks-title">📦 ПЕРЕТАЩИ БЛОК НА ПОЛЕ (зажми и тяни)</div>
+        <div class="blocks-title">📦 ВЫБЕРИ БЛОК И НАЖМИ НА ПОЛЕ</div>
         <div class="blocks-container" id="blocksContainer"></div>
     </div>
     
     <div class="action-buttons">
-        <button id="buyTimeBtn" class="buy-btn">⭐ КУПИТЬ ВРЕМЯ (5⭐)</button>
-        <button id="withdrawBtn" class="withdraw-btn">💸 ВЫВЕСТИ TON</button>
-        <button id="leaderboardBtn" class="leaderboard-btn">🏆 ТАБЛИЦА ЛИДЕРОВ</button>
-        <button id="connectWalletBtn" class="buy-btn">🔗 ПОДКЛЮЧИТЬ КОШЕЛЁК</button>
-        <button id="resetBtn" class="reset-btn">🔄 НОВАЯ ИГРА</button>
-        <button id="saveGameBtn" class="buy-btn">💾 СОХРАНИТЬ ИГРУ</button>
+        <button id="buyTimeBtn" class="buy-btn">⭐ +20 СЕК (5⭐)</button>
+        <button id="resetBtn" class="buy-btn">🔄 НОВАЯ ИГРА</button>
     </div>
     
     <button id="stopBtn" class="stop-btn">🛑 СТОП - ЗАБРАТЬ TON 🛑</button>
-</div>
-
-<!-- Модальное окно таблицы лидеров -->
-<div id="leaderboardModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">🏆 ТОП ИГРОКОВ</div>
-        <div id="leaderboardList"></div>
-        <button class="close-modal" onclick="closeLeaderboard()">ЗАКРЫТЬ</button>
-    </div>
-</div>
-
-<!-- Модальное окно подключения кошелька -->
-<div id="walletModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">🔗 ПОДКЛЮЧИТЬ TON КОШЕЛЁК</div>
-        <input type="text" id="walletAddress" placeholder="Введите адрес TON кошелька (UQ... или EQ...)">
-        <button id="saveWalletBtn" class="buy-btn">СОХРАНИТЬ</button>
-        <button class="close-modal" onclick="closeWalletModal()">ОТМЕНА</button>
-    </div>
 </div>
 
 <script>
@@ -343,7 +211,7 @@
     
     // ========== НАСТРОЙКИ ==========
     const BOARD_SIZE = 8;
-    let CELL_SIZE = 45;
+    let CELL_SIZE = 40;
     
     let board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(0));
     let currentBlocks = [];
@@ -353,50 +221,8 @@
     let gameActive = true;
     let stars = 0;
     let timerInterval;
-    let walletAddress = localStorage.getItem('wallet') || '';
     
-    // Загружаем сохранённую игру
-    function loadGame() {
-        const saved = localStorage.getItem('blockBlastSave');
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                board = data.board;
-                score = data.score;
-                timeLeft = data.timeLeft;
-                stars = data.stars;
-                currentBlocks = data.currentBlocks;
-                gameActive = true;
-                updateUI();
-                drawBoard();
-                renderBlocks();
-                startTimer();
-            } catch(e) {
-                initGame();
-            }
-        } else {
-            initGame();
-        }
-    }
-    
-    // Сохраняем игру
-    function saveGame() {
-        const saveData = {
-            board: board,
-            score: score,
-            timeLeft: timeLeft,
-            stars: stars,
-            currentBlocks: currentBlocks,
-            date: new Date().toISOString()
-        };
-        localStorage.setItem('blockBlastSave', JSON.stringify(saveData));
-        alert('✅ Игра сохранена!');
-    }
-    
-    // Таблица лидеров
-    let leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-    
-    // ========== ФИГУРЫ ==========
+    // Фигуры как в Block Blast
     const SHAPES = [
         { shape: [[1]], color: '#ff6b6b' },
         { shape: [[1, 1]], color: '#4ecdc4' },
@@ -414,11 +240,9 @@
     }
     
     function generateBlocks() {
-        if (currentBlocks.length === 0) {
-            currentBlocks = [];
-            for (let i = 0; i < 3; i++) {
-                currentBlocks.push(getRandomBlock());
-            }
+        currentBlocks = [];
+        for (let i = 0; i < 3; i++) {
+            currentBlocks.push(getRandomBlock());
         }
         renderBlocks();
     }
@@ -452,14 +276,14 @@
         
         currentBlocks.forEach((block, idx) => {
             const blockDiv = document.createElement('div');
-            blockDiv.className = 'draggable-block';
+            blockDiv.className = 'block-option';
             if (idx === selectedBlockIndex) blockDiv.classList.add('selected');
             
             const size = 70;
             const blockCanvas = document.createElement('canvas');
             blockCanvas.width = size;
             blockCanvas.height = size;
-            blockCanvas.className = 'block-canvas';
+            blockCanvas.className = 'mini-canvas';
             const blockCtx = blockCanvas.getContext('2d');
             
             const shape = block.shape;
@@ -476,137 +300,22 @@
                     if (shape[y][x]) {
                         blockCtx.fillStyle = block.color;
                         blockCtx.fillRect(x * cellW, y * cellH, cellW - 2, cellH - 2);
-                        blockCtx.fillStyle = 'rgba(255,255,255,0.3)';
-                        blockCtx.fillRect(x * cellW, y * cellH, cellW - 2, cellH - 2);
                     }
                 }
             }
             
             blockDiv.appendChild(blockCanvas);
-            
-            blockDiv.addEventListener('touchstart', (e) => startDrag(e, block, idx));
-            blockDiv.addEventListener('mousedown', (e) => startDrag(e, block, idx));
-            
-            blockDiv.addEventListener('click', (e) => {
-                if (!isDragging) {
-                    selectedBlockIndex = idx;
-                    renderBlocks();
-                }
-            });
+            blockDiv.onclick = () => {
+                selectedBlockIndex = idx;
+                renderBlocks();
+            };
             
             container.appendChild(blockDiv);
         });
     }
     
-    // ========== DRAG & DROP ==========
-    let isDragging = false;
-    let dragClone = null;
-    let draggedBlock = null;
-    let draggedBlockIndex = -1;
-    
-    function startDrag(e, block, idx) {
-        if (!gameActive) return;
-        e.preventDefault();
-        
-        isDragging = true;
-        draggedBlock = block;
-        draggedBlockIndex = idx;
-        
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
-        dragClone = createDragClone(block);
-        document.body.appendChild(dragClone);
-        dragClone.style.left = clientX - dragClone.offsetWidth / 2 + 'px';
-        dragClone.style.top = clientY - dragClone.offsetHeight / 2 + 'px';
-        
-        document.addEventListener('touchmove', onDrag);
-        document.addEventListener('mousemove', onDrag);
-        document.addEventListener('touchend', endDrag);
-        document.addEventListener('mouseup', endDrag);
-    }
-    
-    function createDragClone(block) {
-        const clone = document.createElement('div');
-        clone.className = 'drag-clone';
-        
-        const size = 80;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        
-        const shape = block.shape;
-        const shapeRows = shape.length;
-        const shapeCols = shape[0].length;
-        const cellW = size / shapeCols;
-        const cellH = size / shapeRows;
-        
-        ctx.fillStyle = '#0a0a12';
-        ctx.fillRect(0, 0, size, size);
-        
-        for (let y = 0; y < shapeRows; y++) {
-            for (let x = 0; x < shapeCols; x++) {
-                if (shape[y][x]) {
-                    ctx.fillStyle = block.color;
-                    ctx.fillRect(x * cellW, y * cellH, cellW - 2, cellH - 2);
-                }
-            }
-        }
-        
-        clone.appendChild(canvas);
-        clone.style.position = 'fixed';
-        clone.style.pointerEvents = 'none';
-        clone.style.zIndex = '9999';
-        return clone;
-    }
-    
-    function onDrag(e) {
-        if (!isDragging || !dragClone) return;
-        e.preventDefault();
-        
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
-        dragClone.style.left = clientX - dragClone.offsetWidth / 2 + 'px';
-        dragClone.style.top = clientY - dragClone.offsetHeight / 2 + 'px';
-        
-        showDropPreview(clientX, clientY);
-    }
-    
-    function showDropPreview(clientX, clientY) {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        const canvasX = (clientX - rect.left) * scaleX;
-        const canvasY = (clientY - rect.top) * scaleY;
-        
-        const cellX = Math.floor(canvasX / CELL_SIZE);
-        const cellY = Math.floor(canvasY / CELL_SIZE);
-        
-        drawBoard();
-        
-        if (cellX >= 0 && cellX < BOARD_SIZE && cellY >= 0 && cellY < BOARD_SIZE && draggedBlock) {
-            const shape = draggedBlock.shape;
-            const canPlace = canPlaceBlockAt(draggedBlock, cellX, cellY);
-            
-            for (let y = 0; y < shape.length; y++) {
-                for (let x = 0; x < shape[y].length; x++) {
-                    if (shape[y][x]) {
-                        const boardX = cellX + x;
-                        const boardY = cellY + y;
-                        if (boardX < BOARD_SIZE && boardY < BOARD_SIZE) {
-                            ctx.fillStyle = canPlace ? 'rgba(0,255,0,0.5)' : 'rgba(255,0,0,0.5)';
-                            ctx.fillRect(boardX * CELL_SIZE, boardY * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    function canPlaceBlockAt(block, startX, startY) {
+    // ========== ИГРОВАЯ ЛОГИКА ==========
+    function canPlaceBlock(block, startX, startY) {
         const shape = block.shape;
         for (let y = 0; y < shape.length; y++) {
             for (let x = 0; x < shape[y].length; x++) {
@@ -622,44 +331,7 @@
         return true;
     }
     
-    function endDrag(e) {
-        if (!isDragging) return;
-        e.preventDefault();
-        
-        const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        const canvasX = (clientX - rect.left) * scaleX;
-        const canvasY = (clientY - rect.top) * scaleY;
-        
-        const cellX = Math.floor(canvasX / CELL_SIZE);
-        const cellY = Math.floor(canvasY / CELL_SIZE);
-        
-        if (draggedBlock && cellX >= 0 && cellX < BOARD_SIZE && cellY >= 0 && cellY < BOARD_SIZE) {
-            if (canPlaceBlockAt(draggedBlock, cellX, cellY)) {
-                placeBlock(draggedBlock, cellX, cellY, draggedBlockIndex);
-            }
-        }
-        
-        if (dragClone) dragClone.remove();
-        dragClone = null;
-        isDragging = false;
-        draggedBlock = null;
-        draggedBlockIndex = -1;
-        
-        drawBoard();
-        
-        document.removeEventListener('touchmove', onDrag);
-        document.removeEventListener('mousemove', onDrag);
-        document.removeEventListener('touchend', endDrag);
-        document.removeEventListener('mouseup', endDrag);
-    }
-    
-    function placeBlock(block, startX, startY, blockIndex) {
+    function placeBlock(block, startX, startY) {
         const shape = block.shape;
         for (let y = 0; y < shape.length; y++) {
             for (let x = 0; x < shape[y].length; x++) {
@@ -669,7 +341,7 @@
             }
         }
         
-        currentBlocks.splice(blockIndex, 1);
+        currentBlocks.splice(selectedBlockIndex, 1);
         if (currentBlocks.length === 0) {
             generateBlocks();
         }
@@ -711,6 +383,7 @@
             const addScore = points[Math.min(linesCleared, 7)];
             score += addScore;
             updateUI();
+            drawBoard();
         }
     }
     
@@ -719,7 +392,7 @@
             const block = currentBlocks[i];
             for (let y = 0; y <= BOARD_SIZE - block.shape.length; y++) {
                 for (let x = 0; x <= BOARD_SIZE - block.shape[0].length; x++) {
-                    if (canPlaceBlockAt(block, x, y)) return;
+                    if (canPlaceBlock(block, x, y)) return;
                 }
             }
         }
@@ -729,15 +402,8 @@
     function gameOver() {
         gameActive = false;
         if (timerInterval) clearInterval(timerInterval);
-        
-        const userName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || 'Игрок';
-        leaderboard.push({ name: userName, score: score, wallet: walletAddress, date: new Date().toISOString() });
-        leaderboard.sort((a, b) => b.score - a.score);
-        leaderboard = leaderboard.slice(0, 50);
-        localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-        
         tg.sendData(JSON.stringify({ action: "game_over", score: score }));
-        alert('💀 ИГРА ОКОНЧЕНА! Результат сохранён!');
+        tg.showAlert("💀 ИГРА ОКОНЧЕНА! Нет доступных ходов!");
     }
     
     function updateUI() {
@@ -747,6 +413,58 @@
         document.getElementById('stars').innerText = stars;
     }
     
+    // ========== КЛИК ПО ПОЛЮ ==========
+    canvas.addEventListener('click', (e) => {
+        if (!gameActive) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        let clientX, clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+        
+        const canvasX = (clientX - rect.left) * scaleX;
+        const canvasY = (clientY - rect.top) * scaleY;
+        
+        const cellX = Math.floor(canvasX / CELL_SIZE);
+        const cellY = Math.floor(canvasY / CELL_SIZE);
+        
+        if (cellX >= 0 && cellX < BOARD_SIZE && cellY >= 0 && cellY < BOARD_SIZE) {
+            const selectedBlock = currentBlocks[selectedBlockIndex];
+            if (selectedBlock && canPlaceBlock(selectedBlock, cellX, cellY)) {
+                placeBlock(selectedBlock, cellX, cellY);
+            }
+        }
+    });
+    
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const canvasX = (touch.clientX - rect.left) * scaleX;
+        const canvasY = (touch.clientY - rect.top) * scaleY;
+        
+        const cellX = Math.floor(canvasX / CELL_SIZE);
+        const cellY = Math.floor(canvasY / CELL_SIZE);
+        
+        if (cellX >= 0 && cellX < BOARD_SIZE && cellY >= 0 && cellY < BOARD_SIZE) {
+            const selectedBlock = currentBlocks[selectedBlockIndex];
+            if (selectedBlock && canPlaceBlock(selectedBlock, cellX, cellY)) {
+                placeBlock(selectedBlock, cellX, cellY);
+            }
+        }
+    });
+    
+    // ========== ТАЙМЕР ==========
     function startTimer() {
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
@@ -757,66 +475,29 @@
                     gameActive = false;
                     clearInterval(timerInterval);
                     tg.sendData(JSON.stringify({ action: "time_out", score: score }));
-                    alert('💀 ВРЕМЯ ВЫШЛО! Все очки потеряны!');
+                    tg.showAlert("💀 ВРЕМЯ ВЫШЛО! Все очки потеряны!");
                 }
             }
         }, 1000);
     }
     
+    // ========== НОВАЯ ИГРА ==========
     function initGame() {
         board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(0));
         score = 0;
         timeLeft = 60;
         gameActive = true;
-        stars = parseInt(localStorage.getItem('stars') || '0');
         updateUI();
-        currentBlocks = [];
         generateBlocks();
         drawBoard();
         startTimer();
     }
     
     function resetGame() {
-        if (confirm('Начать новую игру? Текущий прогресс будет потерян!')) {
+        if (confirm("Начать новую игру?")) {
             if (timerInterval) clearInterval(timerInterval);
             initGame();
         }
-    }
-    
-    // ========== МОДАЛЬНЫЕ ОКНА ==========
-    function showLeaderboard() {
-        const listDiv = document.getElementById('leaderboardList');
-        listDiv.innerHTML = '';
-        
-        if (leaderboard.length === 0) {
-            listDiv.innerHTML = '<div class="leaderboard-item">Нет результатов</div>';
-        } else {
-            leaderboard.forEach((item, idx) => {
-                const div = document.createElement('div');
-                div.className = 'leaderboard-item';
-                div.innerHTML = `
-                    <span>${idx + 1}. ${item.name}</span>
-                    <span>🏆 ${item.score}</span>
-                    <span>💰 ${(item.score * 0.001).toFixed(3)} TON</span>
-                `;
-                listDiv.appendChild(div);
-            });
-        }
-        
-        document.getElementById('leaderboardModal').style.display = 'flex';
-    }
-    
-    function closeLeaderboard() {
-        document.getElementById('leaderboardModal').style.display = 'none';
-    }
-    
-    function showWalletModal() {
-        document.getElementById('walletAddress').value = walletAddress;
-        document.getElementById('walletModal').style.display = 'flex';
-    }
-    
-    function closeWalletModal() {
-        document.getElementById('walletModal').style.display = 'none';
     }
     
     // ========== КНОПКИ ==========
@@ -824,10 +505,9 @@
         if (gameActive) {
             gameActive = false;
             if (timerInterval) clearInterval(timerInterval);
-            
             const tonAmount = score * 0.001;
-            tg.sendData(JSON.stringify({ action: "cashout", score: score, ton_amount: tonAmount }));
-            alert(`🎉 ТЫ ЗАБРАЛ ${tonAmount.toFixed(3)} TON!`);
+            tg.sendData(JSON.stringify({ action: "cashout", ton_amount: tonAmount, score: score }));
+            tg.showAlert(`🎉 ТЫ ЗАБРАЛ ${tonAmount.toFixed(3)} TON!`);
             setTimeout(() => tg.close(), 2000);
         }
     };
@@ -836,49 +516,18 @@
         if (stars >= 5) {
             stars -= 5;
             timeLeft += 20;
-            localStorage.setItem('stars', stars);
             updateUI();
-            alert(`✅ Куплено +20 секунд! Осталось звёзд: ${stars}`);
+            tg.showAlert(`✅ +20 секунд! Осталось звёзд: ${stars}`);
         } else {
             tg.sendData(JSON.stringify({ action: "buy_time" }));
-            alert('⭐ Не хватает звёзд! Купи звёзды в боте: /buy_20s');
+            tg.showAlert("⭐ Не хватает звёзд! Купи в боте: /buy_20s");
         }
     };
     
-    document.getElementById('withdrawBtn').onclick = () => {
-        if (!walletAddress) {
-            alert('❌ Сначала подключи кошелёк!');
-            showWalletModal();
-            return;
-        }
-        const amount = score * 0.001;
-        if (amount > 0) {
-            tg.sendData(JSON.stringify({ action: "withdraw", wallet: walletAddress, amount: amount }));
-            alert(`💸 Запрос на вывод ${amount.toFixed(3)} TON отправлен!\nКошелёк: ${walletAddress.substring(0, 10)}...`);
-        } else {
-            alert('❌ Нет TON для вывода! Набери очки!');
-        }
-    };
-    
-    document.getElementById('leaderboardBtn').onclick = () => showLeaderboard();
-    document.getElementById('connectWalletBtn').onclick = () => showWalletModal();
     document.getElementById('resetBtn').onclick = () => resetGame();
-    document.getElementById('saveGameBtn').onclick = () => saveGame();
     
-    document.getElementById('saveWalletBtn').onclick = () => {
-        const address = document.getElementById('walletAddress').value.trim();
-        if (address && (address.startsWith('UQ') || address.startsWith('EQ'))) {
-            walletAddress = address;
-            localStorage.setItem('wallet', address);
-            alert('✅ Кошелёк подключён!');
-            closeWalletModal();
-        } else {
-            alert('❌ Введи корректный адрес TON (начинается с UQ или EQ)');
-        }
-    };
-    
-    // Загружаем игру
-    loadGame();
+    // Старт
+    initGame();
 </script>
 </body>
 </html>
