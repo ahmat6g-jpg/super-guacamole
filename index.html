@@ -2,40 +2,38 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Block Blast TON Miner - Зарабатывай TON</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Block Blast TON Miner</title>
+    <!-- ПОДКЛЮЧАЕМ TELEGRAM SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             user-select: none;
-            touch-action: none;
-            box-sizing: border-box;
+            touch-action: manipulation;
         }
         
         body {
             margin: 0;
             padding: 10px;
-            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             font-family: 'Segoe UI', system-ui, sans-serif;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow-x: hidden;
         }
         
         .game-container {
             max-width: 500px;
             margin: 0 auto;
-            background: rgba(15, 15, 26, 0.95);
+            background: #0f0f1a;
             border-radius: 30px;
             padding: 15px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
         
-        /* Панель статистики */
         .stats-panel {
-            background: rgba(26, 26, 46, 0.95);
+            background: #1a1a2e;
             border-radius: 20px;
             padding: 12px;
             margin-bottom: 15px;
@@ -45,7 +43,7 @@
         }
         
         .stat-card {
-            background: rgba(15, 15, 26, 0.8);
+            background: #0f0f1a;
             border-radius: 15px;
             padding: 8px;
             text-align: center;
@@ -58,12 +56,11 @@
         }
         
         .stat-value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             color: #ffd700;
         }
         
-        /* Игровое поле */
         .board-container {
             display: flex;
             justify-content: center;
@@ -72,16 +69,15 @@
         
         canvas {
             background: #0a0a12;
-            border-radius: 15px;
+            border-radius: 20px;
             box-shadow: 0 0 0 2px #2a2a3e;
             width: 100%;
             height: auto;
             cursor: pointer;
         }
         
-        /* Блоки */
         .blocks-panel {
-            background: rgba(26, 26, 46, 0.95);
+            background: #1a1a2e;
             border-radius: 20px;
             padding: 15px;
             margin-bottom: 15px;
@@ -89,10 +85,9 @@
         
         .blocks-title {
             text-align: center;
-            color: #ffd700;
-            font-size: 14px;
+            color: #aaa;
+            font-size: 12px;
             margin-bottom: 10px;
-            font-weight: bold;
         }
         
         .blocks-container {
@@ -103,7 +98,7 @@
         }
         
         .block-option {
-            background: rgba(15, 15, 26, 0.8);
+            background: #0f0f1a;
             border-radius: 15px;
             padding: 10px;
             cursor: pointer;
@@ -117,10 +112,6 @@
             transform: scale(1.05);
         }
         
-        .block-option:active {
-            transform: scale(0.95);
-        }
-        
         .mini-canvas {
             background: #0a0a12;
             border-radius: 10px;
@@ -128,7 +119,6 @@
             margin: 0 auto;
         }
         
-        /* Кнопки */
         .action-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -172,9 +162,9 @@
         }
         
         @media (max-width: 450px) {
-            .stat-value { font-size: 14px; }
-            button { padding: 10px; font-size: 12px; }
-            .mini-canvas { width: 60px; height: 60px; }
+            .stat-value { font-size: 16px; }
+            button { padding: 8px; font-size: 12px; }
+            .stop-btn { font-size: 16px; }
         }
     </style>
 </head>
@@ -188,7 +178,7 @@
     </div>
     
     <div class="board-container">
-        <canvas id="boardCanvas" width="320" height="320"></canvas>
+        <canvas id="boardCanvas" width="360" height="360"></canvas>
     </div>
     
     <div class="blocks-panel">
@@ -197,7 +187,7 @@
     </div>
     
     <div class="action-buttons">
-        <button id="buyTimeBtn" class="buy-btn">⭐ +20 СЕК (5⭐)</button>
+        <button id="buyTimeBtn" class="buy-btn">⭐ КУПИТЬ ВРЕМЯ</button>
         <button id="resetBtn" class="buy-btn">🔄 НОВАЯ ИГРА</button>
     </div>
     
@@ -205,13 +195,19 @@
 </div>
 
 <script>
+    // ИНИЦИАЛИЗАЦИЯ TELEGRAM MINI APP
     const tg = window.Telegram.WebApp;
     tg.ready();
-    tg.expand();
+    tg.expand(); // Растягиваем на весь экран
     
-    // ========== НАСТРОЙКИ ==========
+    // Показываем кнопку закрытия
+    tg.MainButton.setText("ЗАКРЫТЬ");
+    tg.MainButton.onClick(() => tg.close());
+    tg.MainButton.show();
+    
+    // ========== ИГРОВАЯ ЛОГИКА (ВАШ ОРИГИНАЛЬНЫЙ КОД) ==========
     const BOARD_SIZE = 8;
-    let CELL_SIZE = 40;
+    let CELL_SIZE = 45;
     
     let board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(0));
     let currentBlocks = [];
@@ -222,7 +218,6 @@
     let stars = 0;
     let timerInterval;
     
-    // Фигуры как в Block Blast
     const SHAPES = [
         { shape: [[1]], color: '#ff6b6b' },
         { shape: [[1, 1]], color: '#4ecdc4' },
@@ -247,7 +242,6 @@
         renderBlocks();
     }
     
-    // ========== ОТРИСОВКА ==========
     const canvas = document.getElementById('boardCanvas');
     const ctx = canvas.getContext('2d');
     CELL_SIZE = canvas.width / BOARD_SIZE;
@@ -314,7 +308,6 @@
         });
     }
     
-    // ========== ИГРОВАЯ ЛОГИКА ==========
     function canPlaceBlock(block, startX, startY) {
         const shape = block.shape;
         for (let y = 0; y < shape.length; y++) {
@@ -413,7 +406,6 @@
         document.getElementById('stars').innerText = stars;
     }
     
-    // ========== КЛИК ПО ПОЛЮ ==========
     canvas.addEventListener('click', (e) => {
         if (!gameActive) return;
         
@@ -464,7 +456,6 @@
         }
     });
     
-    // ========== ТАЙМЕР ==========
     function startTimer() {
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
@@ -481,7 +472,6 @@
         }, 1000);
     }
     
-    // ========== НОВАЯ ИГРА ==========
     function initGame() {
         board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(0));
         score = 0;
@@ -500,7 +490,6 @@
         }
     }
     
-    // ========== КНОПКИ ==========
     document.getElementById('stopBtn').onclick = () => {
         if (gameActive) {
             gameActive = false;
@@ -526,7 +515,6 @@
     
     document.getElementById('resetBtn').onclick = () => resetGame();
     
-    // Старт
     initGame();
 </script>
 </body>
